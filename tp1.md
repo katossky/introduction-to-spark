@@ -29,11 +29,12 @@ Les données sont accessibles ......... . Les données originales viennent de.
 
 
 
-Connexion au serveur pour lancer votre instance Spark
 
+## Pour approfondir/ réviser:
 
-Copie de fichier depuis une VM vers le serveur
-Lancer WinSCP (statistiques > WinSCP)
-File protocol : SCP
-Host Name : clust-n8.domensai.ecole
-Et c'est parti pour la navigation et le transfert
+- Une série de billets introductifs en français:
+    1. https://aseigneurin.github.io/2014/10/29/introduction-apache-spark.html
+    2. https://aseigneurin.github.io/2014/11/01/initiation-mapreduce-avec-apache-spark.html
+    3. https://aseigneurin.github.io/2014/11/06/mapreduce-et-manipulations-par-cles-avec-apache-spark.html
+    
+- "Quick start", sur le site officiel de Spark: https://spark.apache.org/docs/latest/quick-start.html
