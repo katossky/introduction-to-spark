@@ -11,13 +11,15 @@ Spark se lance en exécutant la commande :
 - `/etc/spark/bin/pyspark` (pour l'interface en Python)
 - `/etc/spark/bin/sparkR`  (pour l'interface en R)
 
-Les données sont accessibles ......... . Les données originales viennent de.......... .
+Pour ce TP nous travaillerons avec l'historique des vols de ligne aux États-Unis en Janvier 2018. Les données peuvent être téléchargées [ici](<!-- LIEN -->).
 
 ## Rappels sur le calcul distribué
 
 ## Exercice 1: lecture des données
 
 Une session *Spark* est l'interface privilégiée de programmation. Elle est accessible par le mot-clé `spark`.
+
+<!-- filter -->
 
 **Pour patienter:** refaire les exercices en Python et en R
 
@@ -30,21 +32,58 @@ Le principe map-reduce est un sous-ensemble du calculs parallèle ou distribué.
 
 Une analogie est le décompte des voix dans une élection, où l'on procède d'abord par un décompte par bureau de vote. Comme dans le cas d'une élection, la découpe du travail permet de revenir localement sur un sous-travail (ici, le décompte d'un bureau spécifique), sans compromettre le reste des opérations (le décompte dans les autres bureaux). Le principe *map-reduce* est dit "peu sensible aux erreurs" (EN: _fault-tolerant_): la panne d'un processeur/nœud ne compromet pas l'ensemble du calcul, et les calculs non effectués sont immédiatement transmis à d'autres processeurs/nœuds.
 
-1. Trouvez deux exemples de calculs faciles à paralléliser avec le principe _map-reduce_ et un exemple de calcul difficile ou impossible à paralléliser sur ce principe. <!-- Facile: moyenne, somme, techniques de Monte Carlo. Difficile: inversion de matrice. Impossible: travelling salesman. Opposition entre "embarassingly parallel problems" et "inherently sequential problems"[^1]. -->
-2. 
-3. 
-4.
+**Q.2.1.** Trouvez deux exemples de calculs faciles à paralléliser avec le principe _map-reduce_ et un exemple de calcul difficile ou impossible à paralléliser sur ce principe. <!-- Facile: moyenne, somme, techniques de Monte Carlo. Difficile: inversion de matrice. Impossible: travelling salesman. Opposition entre "embarassingly parallel problems" et "inherently sequential problems"[^1]. -->
+
+La méthode `count()` est elle-aussi une opération _map-reduce_. `dataFlight.count()` est équivalent à:
+
+```{scala}
+dataFlight
+  .map(flight => 1)
+  .reduce( (accumulator, value) => accumulator + value )
+```
+
+**Q.2.2.** Pourquoi ce code produit-il le même résultat que `count`? Expliquez la syntaxe `flight => 1` et `(accumulator, value) => accumulator + value`. Comment appelle-t-on ce type d'objet en programmation?
+
+<!-- Au fur et à mesure que les différentes sous-tâches ont fini leur exécution, `accumulator` se rapproche du résultat attendu. (En réalité l'opération `reduce` est le plus souvent commutative puisque le résultat final doit être le même quel que soit l'ordre d'exécution des tâches du `map`. La distinction formelle entre `accumulator` et `value` est donc plus pédagogique qu'autre chose.) -->
+
+**Q.2.3.** Changez une ligne du code précédent pour calculer la distance totale parcourrue par des avions de ligne au mois de janvier 2018.
+
+**Q.2.4.** Que fait la fonction suivante? Et le code qui suit?
+
+```{scala}
+def myFunction( a:Double, b:Double ) : Double = if(b > a) b else a
+
+dataFlight
+  .map(flight => flight.ARR_DELAY)
+  .reduce( myFunction )
+```
+<!-- Il est possible d'utiliser des fonctions nommées dans l'étape reduce. -->
+
+**Q.2.5.** L'étape `map` peut renvoyer un n-uplet (EN: _tupple_) et l'opération `reduce` porter sur le n-uplet retourné par chaque processeur / nœud. Que fait le code suivant?
+
+```{scala}
+dataFlight
+  .map(flight => (flight.ARR_DELAY, flight.FL_DATE))
+  .reduce( (a, b) if(a._1 > b_1) a else b )
+```
+
+**Remarque:** `a._1` permet d'accéder au premier élément du n-upplet `a`.
 
 [^1]: https://softwareengineering.stackexchange.com/questions/144787/what-kind-of-problems-does-mapreduce-solve ; https://stackoverflow.com/questions/806569/whats-the-opposite-of-embarrassingly-parallel ; https://en.wikipedia.org/wiki/Embarrassingly_parallel
 
 **Pour patienter:** refaire les exercices en Python et en R
 
-## Exercice 3: génération et transformation de données
+## Exercice 3: transformation de données, mise en cache
 
-3.1 Générez un milion d'entiers.
-3.2 Calculez leur moyenne, directement puis de façon distribuée
-3.3 Calculez leur variance, directement puis de façon distribuée
-3.4 Vous pouvez 
+<!-- fonctions à voir: sort -->
+
+3.1 Créez un nombre aléatoire entre 0 et 1 pour chaque vol de la base de donnée.
+3.2 Calculez la moyenne de ces nombre, de façon locale
+3.3 Calculez leur moyenne, de façon distribuée selon le schéma _map-reduce_. (Réfléchissez à comment aggréger les sous-calculs avec `reduce`.) <!-- Solution facile: 2 variables. Solutions difficile: map renvoie un tupple. -->
+3.4 Combien de temps avez vous gagné? Pourquoi le résultat est-il différent? <!-- Spark pratique l'évaluation retardée (EN: _lazy evaluation_): les expressions sont gardées en forme littérale jusqu'à ce qu'une étape `reduce` soit appelée (`count` compte comme `reduce`). Du coup, la génération aléatoire est effectuée plusieurs fois. -->
+3.5 Il est possible de forcer l'évaluation d'un résultat intermédiaire avec les méthodes `cache()` et `persist()`. Cela est utile quand votre flux de donnees (EN: _data flow_) possède des "branches", c-à-d lorsqu'une étape de pré-traitement est réutilisée par plusieurs traitements en aval. En ne modifiant qu'une seule ligne de code, appliquez ce principe au calcul de moyenne précédent.
+3.6 Répétez l'opération pour le calcul de la variance. Combien de temps avez vous gagné?
+
 
 ## Exercice 4: applications
 
@@ -63,4 +102,4 @@ Une analogie est le décompte des voix dans une élection, où l'on procède d'a
     
 - "Quick start", sur le site officiel de Spark: https://spark.apache.org/docs/latest/quick-start.html
 
-- Introduction à Scala: https://docs.scala-lang.org/tutorials/tour/tour-of-scala.html.html
+- Introduction à Scala: https://docs.scala-lang.org/tutorials/tour/tour-of-scala.html
