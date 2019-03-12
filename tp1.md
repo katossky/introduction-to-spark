@@ -11,7 +11,9 @@ Spark se lance en exécutant la commande :
 - `/etc/spark/bin/pyspark` (pour l'interface en Python)
 - `/etc/spark/bin/sparkR`  (pour l'interface en R)
 
+
 Pour ce TP nous travaillerons avec l'historique des vols de ligne aux États-Unis en Janvier 2018. Les données peuvent être téléchargées depuis https://www.transtats.bts.gov/DL_SelectFields.asp?Table_ID=236&DB_Short_Name=On-Time
+
 
 ## Rappels sur le calcul distribué
 
@@ -89,9 +91,6 @@ La fonction max peut être importé selon : `import org.apache.spark.sql.functio
 **Q1.2** Trouvez les 5 payes ayant le plus de vols vers les États-Unis.
 
 **Q1.3** Charger dans une dataframe les données du fichier sur les vols.
-
-
-<!-- filter -->
 
 **Pour patienter:** refaire les exercices en Python et en R
 
@@ -174,4 +173,5 @@ dataFlight
     
 - "Quick start", sur le site officiel de Spark: https://spark.apache.org/docs/latest/quick-start.html
 
-**Pour patienter:** refaire les exercices en Python et en R
+- Introduction à Scala: https://docs.scala-lang.org/tutorials/tour/tour-of-scala.html
+
