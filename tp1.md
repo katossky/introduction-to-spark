@@ -11,7 +11,9 @@ Spark se lance en exécutant la commande :
 - `/etc/spark/bin/pyspark` (pour l'interface en Python)
 - `/etc/spark/bin/sparkR`  (pour l'interface en R)
 
-Pour ce TP nous travaillerons avec l'historique des vols de ligne aux États-Unis en Janvier 2018. Les données peuvent être téléchargées [ici](<!-- LIEN -->).
+
+Pour ce TP nous travaillerons avec l'historique des vols de ligne aux États-Unis en Janvier 2018. Les données peuvent être téléchargées depuis https://www.transtats.bts.gov/DL_SelectFields.asp?Table_ID=236&DB_Short_Name=On-Time
+
 
 ## Rappels sur le calcul distribué
 
@@ -19,7 +21,76 @@ Pour ce TP nous travaillerons avec l'historique des vols de ligne aux États-Uni
 
 Une session *Spark* est l'interface privilégiée de programmation. Elle est accessible par le mot-clé `spark`.
 
-<!-- filter -->
+### Spark-shell
+
+Une fois spark-shell démarré, un environnement est proposé où il possible de taper du code Scala.
+
+Quelques commandes utiles pour spark-shell :
+- `:quit` pour quitter spark-shell
+- `:history` pour afficher les commandes précédemment entrées
+- `:help` pour afficher la liste des commandes possibles
+- `:type <variable>` pour afficher le type d'une variable
+
+L'auto-complétion est disponible au sein du spark-shell. Par exemple en rentrant `spa` puis en appuyant sur TAB, spark-shell affiche les différentes possibilités.
+
+### Spark UI
+
+Lors du démarrage de spark-shell ligne de ce type est affichée `Spark context Web UI available at http://192.168.180.138:4040`.
+Ouvrir un navigateur à cette adresse permet d'afficher Spark UI.
+
+### DataFrame
+
+Une DataFrame est une collection distribuée de données, et représente simplement un tableau organisé en ligne et en colonne.
+Le concept de DataFrame n'est pas unique à Spark, celui-ci est présent en Python et R par exemple.
+Au contraire de Python et R (dans la plupart des cas), une DataFrame Spark peut être répartie sur des centaines ou milliers d'ordinateurs.
+
+Créons une simple DataFrame d'une une seule colonne avec 500 lignes contenant les entiers de 0 à 499
+
+`val simpleRange = spark.range(500).toDF("number")`
+
+La fonction `printSchema` affiche les noms des colonnes avec le type associé dans le console.
+`myRange.printSchema()`
+
+La fonction show() permet d'afficher les données.
+
+`myRange.show()`
+
+Les opérations sur les DataFrames sont divisées en deux catégories: transformation et action.
+Un exemple d'une transformation est le suivant :
+`val divisBy2 = simpleRange.where("number % 2 = 0")`
+
+Remarquer qu'il n'y a rien d'afficher suite à cela dans spark-shell.
+
+Un exemple d'une action est :
+`divisBy2.count()`
+
+### Premier exemple
+
+Dans cette partie, nous allons analyser des données de vols selon le United States Bureau of Transportations statistics.
+Le CSV est nommés '2015-summary.csv'.
+
+Pour charger le fichier :
+
+```{scala}
+val flight2015 = spark.read.option("inferSchema", "true").option("header", "true").csv("2015-summary.csv")
+```
+Nous indiquons que la première ligne est composée du nom des colonnes et que nous laissons Spark inférer le type de nos données.
+
+
+Nous pouvons faire des requêtes types SQL sur nos données.
+
+Par exemple : 
+`flight2015.groupBy('DEST_COUNTRY_NAME).count().show(40)`
+
+La documentation est disponible à l'adresse suivante : https://spark.apache.org/docs/2.3.0/sql-programming-guide.html
+
+La fonction max peut être importé selon : `import org.apache.spark.sql.functions.max`
+
+**Q1.1** Trouvez le nombre total de vol.
+
+**Q1.2** Trouvez les 5 payes ayant le plus de vols vers les États-Unis.
+
+**Q1.3** Charger dans une dataframe les données du fichier sur les vols.
 
 **Pour patienter:** refaire les exercices en Python et en R
 
@@ -103,3 +174,4 @@ dataFlight
 - "Quick start", sur le site officiel de Spark: https://spark.apache.org/docs/latest/quick-start.html
 
 - Introduction à Scala: https://docs.scala-lang.org/tutorials/tour/tour-of-scala.html
+
