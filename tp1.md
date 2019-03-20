@@ -25,7 +25,7 @@ Une session *Spark* est l'interface privilégiée de programmation. Elle est acc
 
 ## Exercice 2: le principe map-reduce
 
-Le principe map-reduce est un sous-ensemble du calculs parallèle ou distribué. Il s'agit de décomposer un calcul long en:
+Le principe _map-reduce_ est un sous-ensemble du calculs parallèle ou distribué. Il s'agit de décomposer un calcul long en:
 
 1. une suite d'opérations sur un sous-ensemble des données, ne nécessitant pas de communication entre les processeurs de calcul (étape *map*)
 2. la combinaison des résultats intermédiaires en un résultat final, selon le principe d'un accumulateur ; le résultat final est actualisé à chaque fois qu'un processeurs de l'étape intermédiaire termine son calcul (étape *reduce*).
@@ -39,7 +39,7 @@ La méthode `count()` est elle-aussi une opération _map-reduce_. `dataFlight.co
 ```{scala}
 dataFlight
   .map(flight => 1)
-  .reduce( (accumulator, value) => accumulator + value )
+  .reduce( (accumulator, value) => accumulator + value ) // syntaxe équivalente: .reduce(_+_)
 ```
 
 **Q.2.2.** Pourquoi ce code produit-il le même résultat que `count`? Expliquez la syntaxe `flight => 1` et `(accumulator, value) => accumulator + value`. Comment appelle-t-on ce type d'objet en programmation?
@@ -73,24 +73,38 @@ dataFlight
 
 **Pour patienter:** refaire les exercices en Python et en R
 
-## Exercice 3: transformation de données, mise en cache
 
-<!-- fonctions à voir: sort -->
+<!--
+dataFligth
+  .map(flight => flight.DEP_TIME)
+  .sort()
+  .reduce((a,b) => {println(b);return 1})
+-->
+
+<!-- oordre d'exécution-->
+<!-- flatMap : reprgorammer la fonciton filter ? -->
+
+## Exercice 3: transformation de données, mise en cache, arbitrage map-reduce
+
+<!-- exécution sur quel processeur / noeud -->
+<!-- montrer la duplication -->
+<!-- montrer le choix de lieu de stockage -->
+<!-- les différentes possibilités -->
+<!-- temps d'exécution -->
 
 3.1 Créez un nombre aléatoire entre 0 et 1 pour chaque vol de la base de donnée.
+
 3.2 Calculez la moyenne de ces nombre, de façon locale
+
 3.3 Calculez leur moyenne, de façon distribuée selon le schéma _map-reduce_. (Réfléchissez à comment aggréger les sous-calculs avec `reduce`.) <!-- Solution facile: 2 variables. Solutions difficile: map renvoie un tupple. -->
+
 3.4 Combien de temps avez vous gagné? Pourquoi le résultat est-il différent? <!-- Spark pratique l'évaluation retardée (EN: _lazy evaluation_): les expressions sont gardées en forme littérale jusqu'à ce qu'une étape `reduce` soit appelée (`count` compte comme `reduce`). Du coup, la génération aléatoire est effectuée plusieurs fois. -->
+
 3.5 Il est possible de forcer l'évaluation d'un résultat intermédiaire avec les méthodes `cache()` et `persist()`. Cela est utile quand votre flux de donnees (EN: _data flow_) possède des "branches", c-à-d lorsqu'une étape de pré-traitement est réutilisée par plusieurs traitements en aval. En ne modifiant qu'une seule ligne de code, appliquez ce principe au calcul de moyenne précédent.
+
 3.6 Répétez l'opération pour le calcul de la variance. Combien de temps avez vous gagné?
 
-
-## Exercice 4: applications
-
-**Pour patienter:** refaire les exercices en Python et en R
-
-
-
+3.7 La somme peut être réalisée soit dans l'étape _map_ (sur un seul processeur, donc séquentiellement) soit dans l'étape _reduce_ (parallélisé mais besoin de temps pour additionner). Essayer plusieurs façon de découper le data frame en évaluant le temps d'exécution.
 
 
 ## Pour approfondir/ réviser:
