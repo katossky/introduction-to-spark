@@ -161,14 +161,12 @@ flightData2015.sort("count").explain()
 **Q1.4** Trouvez les 5 pays ayant le plus de vols vers les États-Unis. En utilisation la méthode `explain()`, observez le plan physique. Est-ce que le plan change si vous inversez les instructions?
 <!-- flight2015.sort(desc("count")).filter("DEST_COUNTRY_NAME = 'United States'").show(5) -->
 
-**Q1.5** Charger dans une dataframe les données du fichier sur les vols `2018-01-allFlights.csv` dans une variable `flights2018`. Est-ce que les fonctions `read` sont évaluées paresseusement ? Listez les variables disponibles.
+**Q1.5** Charger dans une dataframe les données du fichier sur les vols `2018-01-allFlights.csv`, situé dans le même dossier, dans une variable `flights2018`. Est-ce que les fonctions `read` sont évaluées paresseusement ? Listez les variables disponibles.
 
 <!--
-val flights2018 = spark
-	.read
-	.option("inferSchema", "true")
-	.option("header", "true")
-	.csv("2018-01-allFlights.csv")
+val flights2018 = spark.read.option("inferSchema", "true").option("header", "true").csv("/projets/DataSpark/2018-01-allFlights.csv")
+
+flights2018.printSchema()
 -->
 
 **Pour patienter:** refaire les exercices en Python et en R
@@ -196,9 +194,9 @@ flights2018
 
 <!-- Au fur et à mesure que les différentes sous-tâches ont fini leur exécution, `accumulator` se rapproche du résultat attendu. (En réalité l'opération `reduce` est le plus souvent commutative puisque le résultat final doit être le même quel que soit l'ordre d'exécution des tâches du `map`. La distinction formelle entre `accumulator` et `value` est donc plus pédagogique qu'autre chose.) -->
 
-**Q.2.3.** Changez une ligne du code précédent pour calculer la distance totale parcourue par des avions de ligne au mois de janvier 2018.
+**Q.2.3.** Changez une ligne du code précédent pour calculer la distance totale parcourue par des avions de ligne au mois de janvier 2018. (La syntaxe Scala pour récupérer la propriété `p` de type `t` de la ligne `l` d'une _data-frame_ est `o.getAs[t]("p")`.)
 
-<!-- .map(flight => flight.DISTANCE) -->
+<!-- flights2018.map(flight => flight.getAs[Double]("DISTANCE")).reduce( (accumulator, value) => accumulator + value ) -->
 
 **Q.2.4.** Que fait la fonction suivante? Et le code qui suit?
 
@@ -206,18 +204,22 @@ flights2018
 def myFunction( a:Double, b:Double ) : Double = if(b > a) b else a
 
 flights2018
-  .map(flight => flight.ARR_DELAY)
-  .reduce( myFunction )
+  .map(flight => flight.getAs[Double]("ARR_DELAY"))
+  .reduce( myFunction _ ) // Le _ force Scala à interpéter myFunction comme une fonction.
 ```
-<!-- Il est possible d'utiliser des fonctions nommées dans l'étape reduce. -->
+<!-- Il est possible d'utiliser des fonctions nommées dans l'étape reduce. 
+flights2018.map(flight => flight.getAs[Double]("ARR_DELAY")).reduce( myFunction _ )
+-->
 
 **Q.2.5.** L'étape `map` peut renvoyer un n-uplet (EN: _tupple_) et l'opération `reduce` porter sur le n-uplet retourné par chaque processeur / nœud. Que fait le code suivant?
 
 ```{scala}
 flights2018
-  .map(flight => (flight.ARR_DELAY, flight.FL_DATE))
-  .reduce( (a, b) => if(a._1 > b_1) a else b )
+  .map(flight => (flight.getAs[Double]("ARR_DELAY"), flight.getAs[java.sql.Date]("FL_DATE")))
+  .reduce( (a, b) => if(a._1 > b._1) a else b )
 ```
+
+<!-- flights2018.map(flight => (flight.getAs[Double]("ARR_DELAY"), flight.getAs[java.sql.Date]("FL_DATE"))).reduce( (a, b) => if(a._1 > b._1) a else b ) -->
 
 **Remarque:** `a._1` permet d'accéder au premier élément du n-upplet `a`.
 
@@ -226,7 +228,7 @@ flights2018
 **Pour patienter:** refaire les exercices en Python et en R
 
 <!--
-dataFligth
+flights2018
   .map(flight => flight.DEP_TIME)
   .sort()
   .reduce((a,b) => {println(b);return 1})
@@ -243,20 +245,47 @@ dataFligth
 <!-- les différentes possibilités -->
 <!-- temps d'exécution -->
 
-**Q.3.1.** Créez un nombre aléatoire entre 0 et 1 pour chaque vol de la base de donnée.
+**Q.3.1.** Créez un nombre aléatoire entre 0 et 1 pour chaque vol de la base de donnée. (Utilisez `scala.util.Random`.)
 
-**Q.3.2.** Calculez la moyenne de ces nombre, de façon locale
+<!--
+var numbers = flights2018.map(flight => scala.util.Random.nextFloat)
+-->
 
-**Q.3.3.** Calculez leur moyenne, de façon distribuée selon le schéma _map-reduce_. (Réfléchissez à comment aggréger les sous-calculs avec `reduce`.) <!-- Solution facile: 2 variables. Solutions difficile: map renvoie un tupple. -->
+**Q.3.2.** Calculez la moyenne de ces nombre, de façon locale. (Vous pouvez utiliser `collect()` pour récupérer un `array` en local.)
 
-**Q.3.4.** Combien de temps avez vous gagné? Pourquoi le résultat est-il différent? <!-- Spark pratique l'évaluation retardée (EN: _lazy evaluation_): les expressions sont gardées en forme littérale jusqu'à ce qu'une étape `reduce` soit appelée (`count` compte comme `reduce`). Du coup, la génération aléatoire est effectuée plusieurs fois. -->
+<!--
+var local_numbers = numbers.collect()
+local_numbers.reduce(_+_)/local_numbers.length
+-->
+
+**Q.3.3.** Calculez leur moyenne, de façon distribuée selon le schéma _map-reduce_. (Réfléchissez à comment aggréger les sous-calculs avec `reduce`.)
+
+<!--
+Solution facile:
+var somme = numbers.reduce(_+_)
+var count = numbers.count()
+somme/count
+
+Solutions difficile:
+numbers.map( n => (n, 1) ).reduce( (a,b) => ((a._1*a._2+b._1*b._2)/(a._2+b._2), a._2+b._2) )
+-->
+
+**Q.3.4.** Combien de temps avez vous gagné? Pourquoi le résultat est-il différent? <!-- Ce n'est pas plus rapide. Spark pratique l'évaluation retardée (EN: _lazy evaluation_): les expressions sont gardées en forme littérale jusqu'à ce qu'une étape `reduce` soit appelée (`count` compte comme `reduce`). Du coup, la génération aléatoire est effectuée plusieurs fois. -->
 
 **Q.3.5.** Il est possible de forcer l'évaluation d'un résultat intermédiaire avec les méthodes `cache()` et `persist()`. Cela est utile quand votre flux de donnees (EN: _data flow_) possède des "branches", c-à-d lorsqu'une étape de pré-traitement est réutilisée par plusieurs traitements en aval. En ne modifiant qu'une seule ligne de code, appliquez ce principe au calcul de moyenne précédent.
 
-**Q.3.6.** Répétez l'opération pour le calcul de la variance. Combien de temps avez vous gagné?
+<!--
+var numbers = flights2018.map(flight => scala.util.Random.nextFloat).cache()
+var sum = numbers.reduce(_+_)
+var count = numbers.count()
+sum/count
+numbers.map( n => (n, 1) ).reduce( (a,b) => ((a._1*a._2+b._1*b._2)/(a._2+b._2), a._2+b._2) )
+// mêmes résultats maintenant
+-->
 
-**Q.3.7.** La somme peut être réalisée soit dans l'étape _map_ (sur un seul processeur, donc séquentiellement) soit dans l'étape _reduce_ (parallélisé mais besoin de temps pour additionner). Essayer plusieurs façon de découper le data frame en évaluant le temps d'exécution.
+**Q.3.6.** Répétez l'opération pour le calcul de la variance.
 
+<!-- **Q.3.7.** La somme peut être réalisée soit dans l'étape _map_ (sur un seul processeur, donc séquentiellement) soit dans l'étape _reduce_ (parallélisé mais besoin de temps pour additionner). Essayer plusieurs façon de découper le data frame en évaluant le temps d'exécution. -->
 
 ## Pour approfondir/ réviser:
 
