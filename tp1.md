@@ -180,7 +180,7 @@ Le principe _map-reduce_ est un sous-ensemble du calculs parallèle ou distribu�
 
 Une analogie est le décompte des voix dans une élection, où l'on procède d'abord par un décompte par bureau de vote. Comme dans le cas d'une élection, la découpe du travail permet de revenir localement sur un sous-travail (ici, le décompte d'un bureau spécifique), sans compromettre le reste des opérations (le décompte dans les autres bureaux). Le principe *map-reduce* est dit "peu sensible aux erreurs" (EN: _fault-tolerant_): la panne d'un processeur/nœud ne compromet pas l'ensemble du calcul, et les calculs non effectués sont immédiatement transmis à d'autres processeurs/nœuds.
 
-**Q.2.1.** Trouvez deux exemples de calculs faciles à paralléliser avec le principe _map-reduce_ et un exemple de calcul difficile ou impossible à paralléliser sur ce principe. <!-- Facile: moyenne, somme, techniques de Monte Carlo. Difficile: inversion de matrice. Impossible: travelling salesman. Opposition entre "embarassingly parallel problems" et "inherently sequential problems"[^1]. -->
+**Q.2.1.** Trouvez deux exemples de calculs faciles à paralléliser avec le principe _map-reduce_ et un exemple de calcul difficile ou impossible à paralléliser sur ce principe[^1]. <!-- Facile: moyenne, somme, techniques de Monte Carlo. Difficile: inversion de matrice. Impossible: travelling salesman. Opposition entre "embarassingly parallel problems" et "inherently sequential problems". -->
 
 La méthode `count()` est elle-aussi une opération _map-reduce_. `flights2018.count()` est équivalent à:
 
@@ -194,7 +194,7 @@ flights2018
 
 <!-- Au fur et à mesure que les différentes sous-tâches ont fini leur exécution, `accumulator` se rapproche du résultat attendu. (En réalité l'opération `reduce` est le plus souvent commutative puisque le résultat final doit être le même quel que soit l'ordre d'exécution des tâches du `map`. La distinction formelle entre `accumulator` et `value` est donc plus pédagogique qu'autre chose.) -->
 
-**Q.2.3.** Changez une ligne du code précédent pour calculer la distance totale parcourue par des avions de ligne au mois de janvier 2018. (La syntaxe Scala pour récupérer la propriété `p` de type `t` de la ligne `l` d'une _data-frame_ est `o.getAs[t]("p")`.)
+**Q.2.3.** Changez une ligne du code précédent pour calculer la distance totale parcourue par des avions de ligne au mois de janvier 2018. (La syntaxe Scala pour récupérer la propriété `p` de type `t` de la ligne `l` d'une _data-frame_ est `l.getAs[t]("p")`.)
 
 <!-- flights2018.map(flight => flight.getAs[Double]("DISTANCE")).reduce( (accumulator, value) => accumulator + value ) -->
 
