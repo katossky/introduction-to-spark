@@ -255,7 +255,7 @@ var numbers = flights2018.map(flight => scala.util.Random.nextFloat)
 
 <!--
 var local_numbers = numbers.collect()
-local_numbers.reduce(_+_)/local_numbers.length
+local_numbers.sum / local_numbers.size
 -->
 
 **Q.3.3.** Calculez leur moyenne, de façon distribuée selon le schéma _map-reduce_. (Réfléchissez à comment aggréger les sous-calculs avec `reduce`.)
