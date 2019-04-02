@@ -16,7 +16,7 @@ Spark se lance en exécutant la commande :
 - `/etc/spark/bin/sparkR`  (pour l'interface en R)
 
 Pour ce TP nous travaillerons avec l'historique des vols de ligne aux États-Unis en Janvier 2018.
-Les données peuvent être téléchargées depuis https://www.transtats.bts.gov/DL_SelectFields.asp?Table_ID=236&DB_Short_Name=On-Time
+Les données peuvent être téléchargées depuis https://www.transtats.bts.gov/DL_SelectFields.asp?Table_ID=236&DB_Short_Name=On-Time et elles sont déjà disponibles sur le cluster dans le réportoire `/projets/DataSpark`.
 
 
 ## Rappels sur le calcul distribué
@@ -127,7 +127,7 @@ val flight2015 = spark
 	.read
 	.option("inferSchema", "true")
 	.option("header", "true")
-	.csv("2015-summary.csv")
+	.csv("/projets/DataSpark/2015-summary.csv")
 ```
 
 Nous pouvons maintenant faire des requêtes types SQL sur nos données.
@@ -145,7 +145,6 @@ Plus de documentation est disponible à l'adresse suivante : https://spark.apach
 Les différentes fonctions nécessaires peuvent être importé selon :
 ```{scala}
 import org.apache.spark.sql._
-import sqlContext.implicits._
 ```
 
 Pour chaque instruction , Spark élabore un plan pour la façon dont il exécutera cela dans l'ensemble du cluster.
