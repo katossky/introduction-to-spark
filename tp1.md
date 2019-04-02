@@ -129,6 +129,9 @@ val flight2015 = spark
 	.option("header", "true")
 	.csv("/projets/DataSpark/2015-summary.csv")
 ```
+<!--
+val flight2015 = spark.read.option("inferSchema", "true").option("header", "true").csv("/projets/DataSpark/2015-summary.csv")
+--!>
 
 Nous pouvons maintenant faire des requêtes types SQL sur nos données.
 
@@ -139,6 +142,9 @@ flight2015
 	.count()
 	.show(40)
 ```
+<!--
+flight2015.groupBy("DEST_COUNTRY_NAME").count().show(40)
+--!>
 
 Plus de documentation est disponible à l'adresse suivante : https://spark.apache.org/docs/2.3.0/sql-programming-guide.html
 
